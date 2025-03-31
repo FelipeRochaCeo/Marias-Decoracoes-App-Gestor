@@ -9,8 +9,8 @@ export const users = pgTable("users", {
   password: text("password").notNull(),
   name: text("name").notNull(),
   email: text("email").notNull(),
-  role: text("role").notNull().default("Employee"),
-  status: text("status").notNull().default("active"),
+  role: text("role").notNull().default("Funcionário"),
+  status: text("status").notNull().default("ativo"),
 });
 
 export const insertUserSchema = createInsertSchema(users).pick({
@@ -90,8 +90,8 @@ export const tasks = pgTable("tasks", {
   id: serial("id").primaryKey(),
   title: text("title").notNull(),
   description: text("description").notNull(),
-  status: text("status").notNull().default("todo"),
-  priority: text("priority").notNull().default("medium"),
+  status: text("status").notNull().default("a fazer"),
+  priority: text("priority").notNull().default("média"),
   assignee: integer("assignee"),
   createdBy: integer("created_by").notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
@@ -115,7 +115,7 @@ export const feedback = pgTable("feedback", {
   description: text("description").notNull(),
   type: text("type").notNull(),
   visibility: text("visibility").notNull().default("all"),
-  status: text("status").notNull().default("open"),
+  status: text("status").notNull().default("aberto"),
   submittedBy: integer("submitted_by").notNull(),
   submittedAt: timestamp("submitted_at").notNull().defaultNow(),
 });

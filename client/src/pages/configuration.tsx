@@ -129,13 +129,13 @@ const Configuration = () => {
         <TabsContent value="appearance" className="space-y-4 mt-4">
           <Card>
             <CardHeader>
-              <CardTitle>Theme Settings</CardTitle>
+              <CardTitle>Configurações de Tema</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid gap-4 py-4">
                 <div className="grid grid-cols-4 items-center gap-4">
                   <Label htmlFor="primaryColor" className="text-right">
-                    Primary Color
+                    Cor Primária
                   </Label>
                   <div className="col-span-3 flex items-center gap-2">
                     <Input
