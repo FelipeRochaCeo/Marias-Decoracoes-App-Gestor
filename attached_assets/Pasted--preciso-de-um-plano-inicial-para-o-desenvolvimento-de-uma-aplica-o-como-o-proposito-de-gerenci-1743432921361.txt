@@ -1,0 +1,28 @@
+
+
+
+preciso de um plano inicial, para o desenvolvimento de uma aplicação, como o proposito de gerenciar todo o meu negocio, preciso apenas começar a desenvolver a base dele ex. interface, estilo, e principalmente garantir fácil expansão dessa ferramenta, por se tratar de um projeto que irá ser personalizado sempre conforme as necessidade do meu negocio, Portanto garanta uma estrura modular, que contenha uma base que jamais deverá ser editada, para incluir ferramentas, recuros, acções, páginas qualquer coisa, iremos fazer isso por meio de módulos, ou seja tudo que for ser adicionado tera uma pasata e seu proprio arquivo. garantindo uma organização inteligente e estrutura modular fácil de expandir... 
+
+
+
+Pode ter uma página de configuração dessa base, como opções de cores estilos, algumas coisas para que eu possa alterar se quiser, e nessa página somente nessa página poderá ser feito alterações nos arquivos da base dessa aplicação, aquivos protegidos por senhas para editar e registrar as alterações para que possa navegar entre elas, usar openai para acompanhar logos e mostrar como corrigir. 
+
+
+area de cadastro de usuário membro da equipe como cargos personalizado, cada cargo libera permissões nessa aplicação. Oferecer um chat para que a equipe possa se comunicar entre elas, e uma opção para me chamar na conversa somente quando for exatamente necessário aplicação devera exibir uma notificação na minha conta no meu app
+
+
+Layout exclusivamente para celular, portanto totalmente responsável, mas ele se adpta para desktop pois eu não uso celular 
+
+
+
+é dessa aplicação que iremos gerenciar todo nosso negocio de forma inteligente, mesmo quando não estivemos lá, estaremos acompanhando tudo, manter uma conceção com funcionários, cobrar produtividade, controlar os processos, gerar tarefas,  distribuir responsabilidades, etc. 
+
+Oferecer uma tela para que eles possa fazer o controle de insumos e manter um controle por meio de contagens semanais garantido que não falte materia prima como, fita para embalagem, emgalagem platica, etiquetas termicas, e outras coisas . 
+
+Lista de compras de coisas como: Produtos de limpeza
+
+Uma tela para sugestões e reclamações, podendo ser para todos ou para os administrators. 
+
+
+
+--- Forneça uma versão expandida mais organizada, inteligente e eficiente 
