@@ -1,5 +1,5 @@
 
-# Guia Rápido do Sistema de Gerenciamento
+# Guia Rápido do Sistema Marias Decorações
 
 Este guia fornece uma referência rápida para as principais funcionalidades e instruções do sistema.
 

@@ -1,5 +1,5 @@
 
-# Documentação Completa do Sistema de Gerenciamento
+# Documentação Completa do Sistema Marias Decorações
 
 ## Visão Geral
 
