@@ -2,6 +2,16 @@ import { useState, useEffect, ReactNode } from "react";
 import Sidebar from "./Sidebar";
 import MobileNavigation from "./MobileNavigation";
 import { useAuth } from "@/hooks/use-auth";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Bell, LogOut, Menu, User } from "lucide-react";
 
 interface AppShellProps {
   children: ReactNode;
@@ -9,7 +19,7 @@ interface AppShellProps {
 
 const AppShell = ({ children }: AppShellProps) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
 
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen);
@@ -28,14 +38,26 @@ const AppShell = ({ children }: AppShellProps) => {
     return () => document.removeEventListener('click', handleOutsideClick);
   }, [mobileMenuOpen]);
 
+  // Lógica para iniciais do avatar
+  const getInitials = () => {
+    if (!user) return "?";
+    if (user.fullName) {
+      return user.fullName
+        .split(" ")
+        .map(name => name[0])
+        .join("")
+        .toUpperCase()
+        .substring(0, 2);
+    }
+    return user.username.substring(0, 2).toUpperCase();
+  };
+
   if (!user) {
-    // We can show a login screen here when auth is fully implemented
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-100">
-        <div className="p-8 bg-white rounded-lg shadow-md">
-          <h1 className="text-2xl font-bold text-gray-800 mb-4">Business Manager</h1>
-          <p className="text-gray-600 mb-4">Please log in to access the application.</p>
-          {/* Login form would go here */}
+      <div className="flex items-center justify-center min-h-screen bg-muted/30">
+        <div className="p-8 bg-card rounded-lg shadow-md">
+          <h1 className="text-2xl font-bold mb-4">Marias Decorações</h1>
+          <p className="text-muted-foreground mb-4">Por favor, faça login para acessar o sistema.</p>
         </div>
       </div>
     );
@@ -44,28 +66,49 @@ const AppShell = ({ children }: AppShellProps) => {
   return (
     <div className="h-screen flex flex-col md:flex-row overflow-hidden">
       {/* Mobile Header */}
-      <header className="bg-white border-b border-gray-200 py-3 px-4 flex justify-between items-center md:hidden">
+      <header className="bg-background border-b py-3 px-4 flex justify-between items-center md:hidden">
         <button 
           id="mobile-menu-button"
-          className="text-gray-500"
+          className="text-muted-foreground"
           onClick={toggleMobileMenu}
         >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
+          <Menu className="h-6 w-6" />
         </button>
-        <h1 className="text-lg font-semibold text-gray-800">Business Manager</h1>
-        <button className="text-gray-500">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-          </svg>
-        </button>
+        <h1 className="text-lg font-semibold">Marias Decorações</h1>
+        
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="flex items-center">
+              <Avatar className="h-8 w-8">
+                <AvatarFallback>{getInitials()}</AvatarFallback>
+              </Avatar>
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem className="flex items-center gap-2">
+              <User className="h-4 w-4" />
+              <span>{user.fullName || user.username}</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem className="flex items-center gap-2">
+              <span className="text-xs px-2 py-1 rounded bg-primary/10 text-primary">
+                {user.role}
+              </span>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => logout()} className="text-destructive flex items-center gap-2">
+              <LogOut className="h-4 w-4" />
+              <span>Sair</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </header>
 
       {/* Mobile menu overlay */}
       {mobileMenuOpen && (
         <div 
-          className="fixed inset-0 bg-gray-600 bg-opacity-75 z-20 md:hidden" 
+          className="fixed inset-0 bg-foreground/20 z-20 md:hidden" 
           aria-hidden="true"
         />
       )}
@@ -75,6 +118,46 @@ const AppShell = ({ children }: AppShellProps) => {
 
       {/* Main Content Area */}
       <main className="flex-1 flex flex-col overflow-hidden">
+        {/* Desktop header */}
+        <header className="bg-background border-b py-3 px-6 hidden md:flex justify-between items-center">
+          <h1 className="text-xl font-semibold">Marias Decorações</h1>
+          
+          <div className="flex items-center gap-4">
+            <button className="text-muted-foreground hover:text-foreground">
+              <Bell className="h-5 w-5" />
+            </button>
+            
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="flex items-center gap-2">
+                  <Avatar className="h-8 w-8">
+                    <AvatarFallback>{getInitials()}</AvatarFallback>
+                  </Avatar>
+                  <span className="font-medium">{user.fullName || user.username}</span>
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem className="flex items-center gap-2">
+                  <User className="h-4 w-4" />
+                  <span>{user.username}</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem className="flex items-center gap-2">
+                  <span className="text-xs px-2 py-1 rounded bg-primary/10 text-primary">
+                    {user.role}
+                  </span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => logout()} className="text-destructive flex items-center gap-2">
+                  <LogOut className="h-4 w-4" />
+                  <span>Sair</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </header>
+        
         {/* Main content scrollable area */}
         <div className="flex-1 overflow-y-auto p-4">
           {children}
