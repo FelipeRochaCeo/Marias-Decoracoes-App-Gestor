@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import { useAuth } from "@/store/authStore";
-import { useTheme } from "@/store/themeStore";
-import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "@/hooks/use-auth";
+import { useTheme } from "@/hooks/use-theme";
+import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,7 +18,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
-import { ModuleRegistry, ModuleRegistrationForm } from "@/components/modules/ModuleRegistry";
+import { ModuleRegistrationForm } from "@/components/modules/ModuleRegistrationUI";
 import { ConfigVersioning } from "@/components/core/ConfigVersioning";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -119,96 +119,106 @@ const Configuration = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="appearance">Appearance</TabsTrigger>
-          <TabsTrigger value="behavior">Behavior</TabsTrigger>
+          <TabsTrigger value="modules">Modules</TabsTrigger>
+          <TabsTrigger value="version-history">Version History</TabsTrigger>
           <TabsTrigger value="advanced">Advanced</TabsTrigger>
         </TabsList>
 
         <TabsContent value="appearance" className="space-y-4 mt-4">
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="primaryColor" className="text-right">
-                Primary Color
-              </Label>
-              <div className="col-span-3 flex items-center gap-2">
-                <Input
-                  id="primaryColor"
-                  type="color"
-                  value={tempTheme.primary}
-                  onChange={(e) => updateTempTheme("primary", e.target.value)}
-                  className="w-16 h-10"
-                />
-                <Input 
-                  type="text"
-                  value={tempTheme.primary}
-                  onChange={(e) => updateTempTheme("primary", e.target.value)}
-                  className="w-32"
-                />
-              </div>
-            </div>
+          <Card>
+            <CardHeader>
+              <CardTitle>Theme Settings</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-4 py-4">
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="primaryColor" className="text-right">
+                    Primary Color
+                  </Label>
+                  <div className="col-span-3 flex items-center gap-2">
+                    <Input
+                      id="primaryColor"
+                      type="color"
+                      value={tempTheme.primary}
+                      onChange={(e) => updateTempTheme("primary", e.target.value)}
+                      className="w-16 h-10"
+                    />
+                    <Input 
+                      type="text"
+                      value={tempTheme.primary}
+                      onChange={(e) => updateTempTheme("primary", e.target.value)}
+                      className="w-32"
+                    />
+                  </div>
+                </div>
 
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="variant" className="text-right">
-                UI Variant
-              </Label>
-              <div className="col-span-3">
-                <select
-                  id="variant"
-                  value={tempTheme.variant}
-                  onChange={(e) => updateTempTheme("variant", e.target.value)}
-                  className="w-full rounded-md border border-gray-300 p-2"
-                >
-                  <option value="professional">Professional</option>
-                  <option value="modern">Modern</option>
-                  <option value="minimal">Minimal</option>
-                </select>
-              </div>
-            </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="variant" className="text-right">
+                    UI Variant
+                  </Label>
+                  <div className="col-span-3">
+                    <select
+                      id="variant"
+                      value={tempTheme.variant}
+                      onChange={(e) => updateTempTheme("variant", e.target.value)}
+                      className="w-full rounded-md border border-gray-300 p-2"
+                    >
+                      <option value="professional">Professional</option>
+                      <option value="tint">Tint</option>
+                      <option value="vibrant">Vibrant</option>
+                    </select>
+                  </div>
+                </div>
 
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="appearance" className="text-right">
-                Appearance
-              </Label>
-              <div className="col-span-3">
-                <select
-                  id="appearance"
-                  value={tempTheme.appearance}
-                  onChange={(e) => updateTempTheme("appearance", e.target.value)}
-                  className="w-full rounded-md border border-gray-300 p-2"
-                >
-                  <option value="light">Light</option>
-                  <option value="dark">Dark</option>
-                  <option value="system">System</option>
-                </select>
-              </div>
-            </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="appearance" className="text-right">
+                    Appearance
+                  </Label>
+                  <div className="col-span-3">
+                    <select
+                      id="appearance"
+                      value={tempTheme.appearance}
+                      onChange={(e) => updateTempTheme("appearance", e.target.value)}
+                      className="w-full rounded-md border border-gray-300 p-2"
+                    >
+                      <option value="light">Light</option>
+                      <option value="dark">Dark</option>
+                      <option value="system">System</option>
+                    </select>
+                  </div>
+                </div>
 
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="radius" className="text-right">
-                Corner Radius
-              </Label>
-              <div className="col-span-3 flex items-center gap-2">
-                <Input
-                  id="radius"
-                  type="range"
-                  min="0"
-                  max="1"
-                  step="0.1"
-                  value={tempTheme.radius}
-                  onChange={(e) => updateTempTheme("radius", parseFloat(e.target.value))}
-                  className="w-full"
-                />
-                <span>{tempTheme.radius}</span>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="radius" className="text-right">
+                    Corner Radius
+                  </Label>
+                  <div className="col-span-3 flex items-center gap-2">
+                    <Input
+                      id="radius"
+                      type="range"
+                      min="0"
+                      max="1"
+                      step="0.1"
+                      value={tempTheme.radius}
+                      onChange={(e) => updateTempTheme("radius", parseFloat(e.target.value))}
+                      className="w-full"
+                    />
+                    <span>{tempTheme.radius}</span>
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
-        <TabsContent value="behavior" className="mt-4">
-          <div className="p-4 rounded-md bg-gray-50 border border-gray-200">
-            <p className="text-sm text-gray-500">Behavior settings will be available in a future update.</p>
-          </div>
+        <TabsContent value="modules" className="mt-4">
+          <ModuleRegistrationForm />
+        </TabsContent>
+
+        <TabsContent value="version-history" className="mt-4">
+          <ConfigVersioning />
         </TabsContent>
 
         <TabsContent value="advanced" className="mt-4">
