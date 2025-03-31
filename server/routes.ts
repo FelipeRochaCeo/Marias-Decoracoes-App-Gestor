@@ -30,7 +30,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
   
   // Set up WebSocket server for real-time features
-  const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
+  const wss = new WebSocketServer({ 
+    server: httpServer, 
+    path: '/ws',
+    verifyClient: (info) => {
+      // Aceitar todas as conexões por enquanto
+      // Em produção, validamos tokens e outros parâmetros de segurança
+      return true;
+    }
+  });
   
   wss.on('connection', (ws) => {
     // Initially set a placeholder userId, will be updated after authentication
