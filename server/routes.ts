@@ -3,6 +3,7 @@ import { WebSocketServer, WebSocket } from "ws";
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { generateSourceCodeFile } from "./codeExporter";
 import { 
   insertUserSchema, 
   insertRoleSchema,
@@ -679,6 +680,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (err) {
       console.error("Dashboard data error:", err);
       res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  // Rota para download do código-fonte consolidado
+  router.get('/export-source-code', requireAuth, requirePermission("configuration"), async (req, res) => {
+    try {
+      const sourceCode = await generateSourceCodeFile();
+      
+      // Configurar cabeçalhos para download
+      res.setHeader('Content-Type', 'text/markdown');
+      res.setHeader('Content-Disposition', 'attachment; filename="marias-decoracoes-source-code.md"');
+      
+      res.send(sourceCode);
+    } catch (err) {
+      console.error("Source code export error:", err);
+      res.status(500).json({ message: "Erro ao exportar código-fonte" });
     }
   });
   
