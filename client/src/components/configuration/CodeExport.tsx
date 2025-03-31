@@ -20,7 +20,7 @@ import { useAuth } from "@/store/authStore";
 export function CodeExport() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { token } = useAuth();
+  const { user } = useAuth();
 
   /**
    * Inicia o download do código-fonte consolidado
@@ -34,9 +34,9 @@ export function CodeExport() {
       const downloadLink = document.createElement("a");
       downloadLink.href = `/api/export-source-code`;
       
-      // Adicionar token de autenticação se necessário
-      if (token) {
-        downloadLink.href += `?token=${token}`;
+      // Adicionar autenticação do usuário se necessário
+      if (user?.id) {
+        downloadLink.href += `?userId=${user.id}`;
       }
       
       downloadLink.download = "marias-decoracoes-source-code.md";

@@ -1,9 +1,5 @@
-import { useContext } from "react";
-import { AuthState, AuthContext } from "@/store/authStore";
+import { AuthState, useAuth as useAuthStore } from "@/store/authStore";
 
 export type AuthStateType = AuthState;
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  return context;
-};
+export const useAuth = useAuthStore;
