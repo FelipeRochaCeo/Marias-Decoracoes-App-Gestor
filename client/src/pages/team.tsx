@@ -275,19 +275,19 @@ const Team = () => {
                         </div>
                         <div className="flex items-center space-x-2">
                           <input type="checkbox" id="perm-inventory" name="permissions[]" value="inventory" className="h-4 w-4 text-primary rounded border-gray-300 focus:ring-primary" />
-                          <Label htmlFor="perm-inventory" className="text-sm">Inventory (Full)</Label>
+                          <Label htmlFor="perm-inventory" className="text-sm">Estoque (Completo)</Label>
                         </div>
                         <div className="flex items-center space-x-2">
                           <input type="checkbox" id="perm-inventory-view" name="permissions[]" value="inventory_view" className="h-4 w-4 text-primary rounded border-gray-300 focus:ring-primary" />
-                          <Label htmlFor="perm-inventory-view" className="text-sm">Inventory (View)</Label>
+                          <Label htmlFor="perm-inventory-view" className="text-sm">Estoque (Visualização)</Label>
                         </div>
                         <div className="flex items-center space-x-2">
                           <input type="checkbox" id="perm-team" name="permissions[]" value="team" className="h-4 w-4 text-primary rounded border-gray-300 focus:ring-primary" />
-                          <Label htmlFor="perm-team" className="text-sm">Team Management</Label>
+                          <Label htmlFor="perm-team" className="text-sm">Gerenciamento de Equipe</Label>
                         </div>
                         <div className="flex items-center space-x-2">
                           <input type="checkbox" id="perm-chat" name="permissions[]" value="chat" className="h-4 w-4 text-primary rounded border-gray-300 focus:ring-primary" />
-                          <Label htmlFor="perm-chat" className="text-sm">Chat</Label>
+                          <Label htmlFor="perm-chat" className="text-sm">Conversa</Label>
                         </div>
                         <div className="flex items-center space-x-2">
                           <input type="checkbox" id="perm-tasks" name="permissions[]" value="tasks" className="h-4 w-4 text-primary rounded border-gray-300 focus:ring-primary" />
