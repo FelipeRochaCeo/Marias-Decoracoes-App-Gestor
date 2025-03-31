@@ -132,16 +132,16 @@ const Inventory = () => {
             </div>
             
             <div className="flex items-center ml-auto">
-              <input
-                id="lowStockFilter"
-                type="checkbox"
-                className="h-4 w-4 text-primary rounded border-gray-300 focus:ring-primary"
-                checked={showLowStockOnly}
-                onChange={() => setShowLowStockOnly(!showLowStockOnly)}
-              />
-              <label htmlFor="lowStockFilter" className="ml-2 text-sm text-gray-700">
-                Show low stock items only
-              </label>
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="lowStockFilter"
+                  checked={showLowStockOnly}
+                  onCheckedChange={() => setShowLowStockOnly(!showLowStockOnly)}
+                />
+                <Label htmlFor="lowStockFilter" className="text-sm text-gray-700">
+                  Show low stock items only
+                </Label>
+              </div>
             </div>
             
             <Button className="bg-primary hover:bg-primary-dark">
