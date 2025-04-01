@@ -23,7 +23,6 @@ import { ConfigVersioning } from "@/components/core/ConfigVersioning";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Slider } from "@/components/ui/slider";
-import { CodeExport } from "@/components/configuration/CodeExport"; // Added import for CodeExport component
 
 
 const Configuration = () => {
@@ -125,7 +124,6 @@ const Configuration = () => {
           <TabsTrigger value="modules">Modules</TabsTrigger>
           <TabsTrigger value="version-history">Version History</TabsTrigger>
           <TabsTrigger value="advanced">Advanced</TabsTrigger>
-          <TabsTrigger value="code-export">Export Code</TabsTrigger> {/* Added new tab for code export */}
         </TabsList>
 
         <TabsContent value="appearance" className="space-y-4 mt-4">
@@ -228,11 +226,6 @@ const Configuration = () => {
             <p className="text-sm text-gray-500">Advanced settings will be available in a future update.</p>
           </div>
         </TabsContent>
-
-        <TabsContent value="code-export" className="mt-4"> {/* Added content for code export tab */}
-          <CodeExport />
-        </TabsContent>
-
       </Tabs>
 
       <Dialog open={isPasswordDialogOpen} onOpenChange={setIsPasswordDialogOpen}>
