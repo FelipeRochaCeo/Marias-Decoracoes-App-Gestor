@@ -33,7 +33,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const wss = new WebSocketServer({ 
     server: httpServer, 
     path: '/ws',
-    verifyClient: (info) => {
+    verifyClient: (info: any) => {
       // Aceitar todas as conexões por enquanto
       // Em produção, validamos tokens e outros parâmetros de segurança
       return true;
