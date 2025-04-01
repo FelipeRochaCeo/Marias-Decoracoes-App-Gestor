@@ -1,10 +1,96 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import session from "express-session";
+import passport from "passport";
+import { Strategy as LocalStrategy } from "passport-local";
+import connectPgSimple from "connect-pg-simple";
+import { storage } from "./storage";
+import bcrypt from "bcrypt";
+import pg from "pg";
+const { Pool } = pg;
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+// Create PostgreSQL connection pool
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL
+});
+
+// Initialize PostgreSQL session store
+const PgSession = connectPgSimple(session);
+
+// Configure session management
+app.use(session({
+  store: new PgSession({
+    pool,
+    tableName: 'user_sessions' // Name of the session table
+  }),
+  secret: process.env.SESSION_SECRET || 'marias-decoracoes-session-secret',
+  resave: false,
+  saveUninitialized: false,
+  cookie: { 
+    secure: process.env.NODE_ENV === 'production',
+    maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
+  }
+}));
+
+// Initialize Passport
+app.use(passport.initialize());
+app.use(passport.session());
+
+// Configure Passport local strategy
+passport.use(new LocalStrategy(
+  async (username, password, done) => {
+    try {
+      const user = await storage.getUserByUsername(username);
+      
+      if (!user) {
+        return done(null, false, { message: 'Usuário ou senha inválidos' });
+      }
+      
+      // Check if this is the first time we're using bcrypt (migration from plaintext)
+      if (!user.passwordHash) {
+        // For development only - allow a default password
+        if (password === 'admin123') {
+          // Update the user with a hashed password for next time
+          const passwordHash = await bcrypt.hash('admin123', 10);
+          await storage.updateUser(user.id, { passwordHash });
+          return done(null, user);
+        }
+        return done(null, false, { message: 'Usuário ou senha inválidos' });
+      }
+      
+      // Verify password hash
+      const isMatch = await bcrypt.compare(password, user.passwordHash);
+      
+      if (!isMatch) {
+        return done(null, false, { message: 'Usuário ou senha inválidos' });
+      }
+      
+      return done(null, user);
+    } catch (err) {
+      return done(err);
+    }
+  }
+));
+
+// Serialize user ID to session
+passport.serializeUser((user: any, done) => {
+  done(null, user.id);
+});
+
+// Deserialize user from session
+passport.deserializeUser(async (id: number, done) => {
+  try {
+    const user = await storage.getUser(id);
+    done(null, user);
+  } catch (err) {
+    done(err);
+  }
+});
 
 app.use((req, res, next) => {
   const start = Date.now();
