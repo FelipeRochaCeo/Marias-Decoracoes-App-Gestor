@@ -1,0 +1,32 @@
+The error message you're seeing, 401 Unauthorized, indicates that the request for user authentication is failing. This issue commonly arises from not being authenticated properly before accessing protected routes.
+
+To resolve this, ensure you've implemented the Repl Auth authentication script in your HTML correctly, and that you're logged in before making requests to /api/auth/me. Here’s a step-by-step on what you should check and update in your code:
+
+Add Authentication Script: Make sure your index.html file includes the Repl Auth script to handle authentication. It should look like this within the body of your HTML:
+
+<div>
+  <script
+    authed="location.reload()"
+    src="https://auth.util.repl.co/script.js"
+  ></script>
+</div>
+Verify User Login: Ensure that users are logged in before accessing routes that require authentication. Use headers to retrieve user data.
+
+Implement Backend Check: Ensure you are properly handling the user authentication on the backend. In your main.py, you need to ensure the /api/auth/me endpoint checks for authentication. Here’s an example of how you might set up that endpoint:
+
+from flask import Flask, jsonify, request
+app = Flask('app')
+@app.route('/api/auth/me')
+def auth_me():
+    if 'X-Replit-User-Id' in request.headers:
+        return jsonify({
+            'id': request.headers['X-Replit-User-Id'],
+            'username': request.headers['X-Replit-User-Name']
+        })
+    return jsonify({'message': 'Não autorizado'}), 401
+app.run(host='0.0.0.0', port=5000)
+Check Your Requests: Make sure that every time you're trying to access /api/auth/me, you've authenticated first and that the appropriate headers are being sent with the requests.
+
+Run the Application: When you run your application, ensure you see the Login with Replit button to allow users to log in.
+
+Once you've made these adjustments, try accessing your app again. If you still encounter issues, please ensure that you follow the authentication flow and check for any errors in the browser console.
