@@ -39,18 +39,15 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        // In a real app, we would call the API to check auth status
-        // const response = await apiRequest("GET", "/api/auth/me");
-        // const userData = await response.json();
-        // setUser(userData);
+        const response = await apiRequest("GET", "/api/auth/me");
         
-        // For demo purposes, set a mock user
-        setUser({
-          id: 1,
-          username: "John Doe",
-          role: "Admin"
-        });
-        
+        if (response.ok) {
+          const userData = await response.json();
+          setUser(userData);
+        } else {
+          // If response is not ok (like 401), user is not logged in
+          setUser(null);
+        }
       } catch (err) {
         console.error("Auth check failed:", err);
         setUser(null);
@@ -67,24 +64,21 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     setError(null);
     
     try {
-      // In a real app, we would call the API to login
-      // const response = await apiRequest("POST", "/api/auth/login", {
-      //   username,
-      //   password
-      // });
-      // const userData = await response.json();
-      // setUser(userData);
-      
-      // For demo purposes, set a mock user based on username
-      setUser({
-        id: 1,
-        username: username,
-        role: username === "admin" ? "Admin" : "Employee"
+      const response = await apiRequest("POST", "/api/auth/login", {
+        username,
+        password
       });
       
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Falha no login");
+      }
+      
+      const userData = await response.json();
+      setUser(userData);
     } catch (err: any) {
       console.error("Login failed:", err);
-      setError(err.message || "Login failed");
+      setError(err.message || "Falha no login");
       throw err;
     } finally {
       setIsLoading(false);
@@ -95,15 +89,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     setIsLoading(true);
     
     try {
-      // In a real app, we would call the API to logout
-      // await apiRequest("POST", "/api/auth/logout");
-      
-      // Clear user state
+      await apiRequest("POST", "/api/auth/logout");
       setUser(null);
-      
     } catch (err: any) {
       console.error("Logout failed:", err);
-      setError(err.message || "Logout failed");
+      setError(err.message || "Falha ao sair");
+      // Even if the API call fails, clear the user from the state
+      setUser(null);
     } finally {
       setIsLoading(false);
     }

@@ -54,7 +54,7 @@ const Dashboard = () => {
                   </svg>
                 </div>
                 <div className="ml-4">
-                  <h3 className="text-sm font-medium text-gray-500">Team Members</h3>
+                  <h3 className="text-sm font-medium text-gray-500">Membros da Equipe</h3>
                   <p className="text-2xl font-semibold text-gray-800">{dashboard.stats.teamMembers}</p>
                 </div>
               </div>

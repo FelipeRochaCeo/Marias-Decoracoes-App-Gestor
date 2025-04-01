@@ -3,6 +3,7 @@ import { WebSocketServer, WebSocket } from "ws";
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import passport from "passport";
 import { 
   insertUserSchema, 
   insertRoleSchema,
@@ -15,7 +16,8 @@ import {
   insertChannelSchema,
   insertNotificationSchema,
   insertSystemConfigSchema,
-  insertModuleSchema
+  insertModuleSchema,
+  User
 } from "@shared/schema";
 import { z } from "zod";
 import { ZodError } from "zod";
@@ -134,96 +136,79 @@ export async function registerRoutes(app: Express): Promise<Server> {
   };
   
   // Authentication check middleware
-  const requireAuth = async (req: Request, res: Response, next: Function) => {
-    // In a real app, check JWT or session
-    // For demo, we'll use a simplified check
-    const userId = req.headers['user-id'];
-    
-    if (!userId) {
-      return res.status(401).json({ message: "Unauthorized" });
+  const requireAuth = (req: Request, res: Response, next: Function) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Não autorizado" });
     }
-    
-    try {
-      const user = await storage.getUser(Number(userId));
-      if (!user) {
-        return res.status(401).json({ message: "User not found" });
-      }
-      
-      // Attach user to request for later use
-      (req as any).user = user;
-      next();
-    } catch (err) {
-      console.error("Auth check error:", err);
-      res.status(500).json({ message: "Internal server error" });
-    }
+    next();
   };
   
   // Permission check middleware
   const requirePermission = (permission: string) => {
     return async (req: Request, res: Response, next: Function) => {
-      const user = (req as any).user;
+      const user = req.user as User;
       
       if (!user) {
-        return res.status(401).json({ message: "Unauthorized" });
+        return res.status(401).json({ message: "Não autorizado" });
       }
       
       try {
         const role = await storage.getRoleByName(user.role);
         
         if (!role) {
-          return res.status(403).json({ message: "Invalid role" });
+          return res.status(403).json({ message: "Papel inválido" });
         }
         
         if (role.permissions.includes("*") || role.permissions.includes(permission)) {
           next();
         } else {
-          res.status(403).json({ message: "Insufficient permissions" });
+          res.status(403).json({ message: "Permissões insuficientes" });
         }
       } catch (err) {
         console.error("Permission check error:", err);
-        res.status(500).json({ message: "Internal server error" });
+        res.status(500).json({ message: "Erro interno do servidor" });
       }
     };
   };
   
   // Authentication Routes
-  router.post('/auth/login', async (req, res) => {
-    try {
-      const { username, password } = req.body;
-      
-      if (!username || !password) {
-        return res.status(400).json({ message: "Username and password are required" });
+  router.post('/auth/login', (req, res, next) => {
+    const { username, password } = req.body;
+    
+    if (!username || !password) {
+      return res.status(400).json({ message: "Nome de usuário e senha são obrigatórios" });
+    }
+    
+    passport.authenticate('local', (err, user, info) => {
+      if (err) {
+        console.error("Login error:", err);
+        return res.status(500).json({ message: "Erro interno do servidor" });
       }
-      
-      const user = await storage.getUserByUsername(username);
       
       if (!user) {
-        return res.status(401).json({ message: "Invalid credentials" });
+        return res.status(401).json({ message: info?.message || "Credenciais inválidas" });
       }
       
-      // In a real app, verify password hash
-      // For demo, simplified check
-      if (password !== "admin123") {
-        return res.status(401).json({ message: "Invalid credentials" });
-      }
-      
-      // In a real app, create and return JWT token
-      // For demo, return user object
-      res.json({
-        id: user.id,
-        username: user.username,
-        name: user.name,
-        email: user.email,
-        role: user.role
+      req.login(user, (err) => {
+        if (err) {
+          console.error("Session error:", err);
+          return res.status(500).json({ message: "Erro ao criar sessão" });
+        }
+        
+        // Return safe user object (without password)
+        res.json({
+          id: user.id,
+          username: user.username,
+          name: user.name,
+          email: user.email,
+          role: user.role
+        });
       });
-    } catch (err) {
-      console.error("Login error:", err);
-      res.status(500).json({ message: "Internal server error" });
-    }
+    })(req, res, next);
   });
   
   router.get('/auth/me', requireAuth, (req, res) => {
-    const user = (req as any).user;
+    const user = req.user as User;
     
     res.json({
       id: user.id,
@@ -235,8 +220,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   router.post('/auth/logout', (req, res) => {
-    // In a real app, invalidate JWT token or session
-    res.json({ message: "Logged out successfully" });
+    req.logout((err) => {
+      if (err) {
+        console.error("Logout error:", err);
+        return res.status(500).json({ message: "Erro ao fazer logout" });
+      }
+      res.json({ message: "Logout realizado com sucesso" });
+    });
   });
   
   // User Routes
@@ -357,7 +347,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const newItem = await storage.createShoppingItem({
         ...req.body,
-        createdBy: (req as any).user.id
+        createdBy: (req.user as User).id
       });
       res.status(201).json(newItem);
     } catch (err) {
@@ -371,7 +361,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const newCount = await storage.createInventoryCount({
         ...req.body,
-        userId: (req as any).user.id
+        userId: (req.user as User).id
       });
       res.status(201).json(newCount);
     } catch (err) {
@@ -405,7 +395,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const newTask = await storage.createTask({
         ...req.body,
-        createdBy: (req as any).user.id
+        createdBy: (req.user as User).id
       });
       res.status(201).json(newTask);
     } catch (err) {
@@ -440,7 +430,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const feedback = await storage.listFeedback();
       
       // Filter feedback based on visibility and user role
-      const user = (req as any).user;
+      const user = req.user as User;
       const filteredFeedback = feedback.filter(item => {
         if (item.visibility === "all") {
           return true;
@@ -459,7 +449,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const newFeedback = await storage.createFeedback({
         ...req.body,
-        submittedBy: (req as any).user.id
+        submittedBy: (req.user as User).id
       });
       res.status(201).json(newFeedback);
     } catch (err) {
@@ -503,7 +493,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const newChannel = await storage.createChannel({
         ...req.body,
-        createdBy: (req as any).user.id
+        createdBy: (req.user as User).id
       });
       res.status(201).json(newChannel);
     } catch (err) {
@@ -526,7 +516,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Notification Routes
   router.get('/notifications', requireAuth, async (req, res) => {
     try {
-      const userId = (req as any).user.id;
+      const userId = (req.user as User).id;
       const notifications = await storage.listUserNotifications(userId);
       res.json(notifications);
     } catch (err) {
@@ -584,7 +574,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const updatedConfig = await storage.setSystemConfig({
         key,
         value,
-        updatedBy: (req as any).user.id
+        updatedBy: (req.user as User).id
       });
       
       res.json(updatedConfig);
@@ -620,7 +610,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const newModule = await storage.createModule({
         ...req.body,
-        registeredBy: (req as any).user.id
+        registeredBy: (req.user as User).id
       });
       res.status(201).json(newModule);
     } catch (err) {
