@@ -1,11 +1,10 @@
-import { createContext, useState, useEffect, ReactNode, useContext } from "react";
+import { createContext, useState, useEffect, ReactNode } from "react";
 import { apiRequest } from "@/lib/queryClient";
 
 export interface User {
   id: number;
   username: string;
   role: string;
-  fullName?: string;
 }
 
 export interface AuthState {
@@ -31,28 +30,29 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
-// Dados do usuário administrador pré-configurado
-const ADMIN_USERNAME = "FelipeRochaCeo";
-const ADMIN_PASSWORD = "#F3l1p3#Ceo";
-
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
-  // Ao montar, verifica se o usuário já está logado através de um token no localStorage
+  // On mount, check if user is already logged in
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const savedUser = localStorage.getItem('currentUser');
+        // In a real app, we would call the API to check auth status
+        // const response = await apiRequest("GET", "/api/auth/me");
+        // const userData = await response.json();
+        // setUser(userData);
         
-        if (savedUser) {
-          setUser(JSON.parse(savedUser));
-        } else {
-          setUser(null);
-        }
+        // For demo purposes, set a mock user
+        setUser({
+          id: 1,
+          username: "John Doe",
+          role: "Admin"
+        });
+        
       } catch (err) {
-        console.error("Falha na verificação de autenticação:", err);
+        console.error("Auth check failed:", err);
         setUser(null);
       } finally {
         setIsLoading(false);
@@ -67,38 +67,24 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     setError(null);
     
     try {
-      // Verifica se é o administrador pré-configurado
-      if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
-        const adminUser = {
-          id: 1,
-          username: ADMIN_USERNAME,
-          role: "Administrador",
-          fullName: "Felipe Rocha"
-        };
-        
-        setUser(adminUser);
-        localStorage.setItem('currentUser', JSON.stringify(adminUser));
-        return;
-      }
+      // In a real app, we would call the API to login
+      // const response = await apiRequest("POST", "/api/auth/login", {
+      //   username,
+      //   password
+      // });
+      // const userData = await response.json();
+      // setUser(userData);
       
-      // Verificações para outros usuários - simulado por enquanto
-      if (username.length > 0 && password.length > 0) {
-        const regularUser = {
-          id: Date.now(), // Gera um ID único
-          username: username,
-          role: "Funcionário",
-          fullName: username // Usa o username como nome completo por enquanto
-        };
-        
-        setUser(regularUser);
-        localStorage.setItem('currentUser', JSON.stringify(regularUser));
-      } else {
-        throw new Error("Nome de usuário e senha são obrigatórios");
-      }
+      // For demo purposes, set a mock user based on username
+      setUser({
+        id: 1,
+        username: username,
+        role: username === "admin" ? "Admin" : "Employee"
+      });
       
     } catch (err: any) {
-      console.error("Falha no login:", err);
-      setError(err.message || "Falha no login. Verifique suas credenciais.");
+      console.error("Login failed:", err);
+      setError(err.message || "Login failed");
       throw err;
     } finally {
       setIsLoading(false);
@@ -109,13 +95,15 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     setIsLoading(true);
     
     try {
-      // Limpa o localStorage e o estado do usuário
-      localStorage.removeItem('currentUser');
+      // In a real app, we would call the API to logout
+      // await apiRequest("POST", "/api/auth/logout");
+      
+      // Clear user state
       setUser(null);
       
     } catch (err: any) {
-      console.error("Falha no logout:", err);
-      setError(err.message || "Falha ao sair do sistema");
+      console.error("Logout failed:", err);
+      setError(err.message || "Logout failed");
     } finally {
       setIsLoading(false);
     }
@@ -134,13 +122,4 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       {children}
     </AuthContext.Provider>
   );
-};
-
-// Hook para usar o contexto de autenticação
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error("useAuth precisa ser usado dentro de um AuthProvider");
-  }
-  return context;
 };
