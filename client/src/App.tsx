@@ -16,6 +16,7 @@ import { ThemeProvider } from "./store/themeStore";
 import { AuthProvider } from "./store/authStore";
 import { ModuleProvider } from "./store/moduleStore";
 import { useAuth } from "@/hooks/use-auth";
+import WebSocketManager from "@/components/core/WebSocketManager";
 
 // Componente para proteger rotas que requerem autenticação
 const PrivateRoute = ({ component: Component, ...rest }: any) => {
@@ -114,6 +115,8 @@ function App() {
           <ModuleProvider>
             <Router />
             <Toaster />
+            {/* WebSocket desativado temporariamente */}
+            {/* <WebSocketManager /> */}
           </ModuleProvider>
         </AuthProvider>
       </ThemeProvider>

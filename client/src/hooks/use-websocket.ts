@@ -17,18 +17,23 @@ interface WebSocketState {
   error: Error | null;
 }
 
-// Compatibilidade com diferentes ambientes
+// Função para obter a URL base do WebSocket
 const getBaseUrl = () => {
-  // Determinar o protocolo (ws ou wss)
-  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-  
-  // Se estamos no ambiente Replit, usar a URL completa com o domínio atual
-  if (window.location.hostname.includes('replit')) {
-    return `${protocol}//${window.location.host}/ws`;
+  try {
+    // Determinar o protocolo (ws ou wss)
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    
+    // Se estamos no ambiente Replit, usar a URL completa com o domínio atual
+    if (window.location.hostname.includes('replit')) {
+      return `${protocol}//${window.location.host}/ws`;
+    }
+    
+    // Para desenvolvimento local, usar localhost
+    return `${protocol}//localhost:5000/ws`;
+  } catch (err) {
+    console.error("Erro ao gerar URL do WebSocket:", err);
+    return null;
   }
-  
-  // Para desenvolvimento local, usar localhost
-  return `${protocol}//localhost:5000/ws`;
 };
 
 export function useWebSocket(options: UseWebSocketOptions = {}) {
@@ -41,21 +46,35 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
     error: null
   });
 
-  // Função para conectar ao WebSocket
+  // Função para conectar ao WebSocket de forma segura
   const connect = useCallback(() => {
     try {
+      // Se já existe um socket conectado, não faz nada
       if (state.socket?.readyState === WebSocket.OPEN) {
-        return; // Já está conectado
+        return () => {};
       }
 
       setState(prev => ({ ...prev, isConnecting: true, error: null }));
 
-      // Tentamos criar o WebSocket com uma URL válida
+      // Tenta obter a URL do WebSocket
       const wsUrl = getBaseUrl();
-      console.log('Tentando conectar ao WebSocket:', wsUrl);
       
-      let socket: WebSocket;
+      // Se não conseguiu gerar a URL, já retorna erro
+      if (!wsUrl) {
+        console.error('Não foi possível determinar a URL do WebSocket');
+        setState(prev => ({ 
+          ...prev, 
+          error: new Error('URL do WebSocket inválida'), 
+          isConnecting: false 
+        }));
+        return () => {};
+      }
+      
+      // Tenta criar o socket dentro de um try-catch seguro
+      let socket: WebSocket | null = null;
+      
       try {
+        console.log('Tentando conectar ao WebSocket:', wsUrl);
         socket = new WebSocket(wsUrl);
       } catch (err) {
         console.error('Erro na criação do WebSocket:', err);
@@ -64,9 +83,10 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
           error: new Error(`Erro ao criar WebSocket: ${err}`), 
           isConnecting: false 
         }));
-        return undefined;
+        return () => {};
       }
 
+      // Configura os handlers
       socket.onopen = () => {
         console.log('WebSocket conectado com sucesso');
         setState(prev => ({ 
@@ -76,12 +96,16 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
           isConnecting: false 
         }));
         
+        // Só envia autenticação se o usuário estiver logado
         if (user) {
-          // Autenticar o WebSocket com o ID do usuário se estiver logado
-          socket.send(JSON.stringify({
-            type: 'auth',
-            userId: user.id
-          }));
+          try {
+            socket?.send(JSON.stringify({
+              type: 'auth',
+              userId: user.id
+            }));
+          } catch (err) {
+            console.error('Erro ao enviar autenticação WebSocket:', err);
+          }
         }
         
         options.onOpen?.();
@@ -107,77 +131,111 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
         
         options.onClose?.();
         
-        // Se a conexão foi fechada inesperadamente e não por um erro
-        if (!state.error && event.code !== 1000) {
+        // Reconecta apenas em caso de fechamento específico
+        // Evita ciclos infinitos de reconexão
+        if (!state.error && event.code !== 1000 && event.code !== 1001) {
           console.log('Conexão WebSocket fechada. Reconectando em 5 segundos...');
-          setTimeout(() => connect(), 5000);
+          const timeoutId = setTimeout(() => {
+            // Verifica se ainda é necessário reconectar
+            if (document.visibilityState !== 'hidden') {
+              connect();
+            }
+          }, 5000);
+          
+          // Limpa o timeout se o componente desmontar
+          return () => clearTimeout(timeoutId);
         }
+        
+        return () => {};
       };
 
       socket.onerror = (event) => {
         console.error('Erro na conexão WebSocket:', event);
-        const error = new Error('Erro na conexão WebSocket');
         
         setState(prev => ({ 
           ...prev, 
-          error, 
+          error: new Error('Erro na conexão WebSocket'), 
           isConnecting: false 
         }));
         
         options.onError?.(event);
       };
 
+      // Retorna a função de limpeza
       return () => {
-        if (socket && socket.readyState === WebSocket.OPEN) {
-          socket.close();
+        try {
+          if (socket && socket.readyState === WebSocket.OPEN) {
+            socket.close(1000, "Fechamento intencional");
+          }
+        } catch (err) {
+          console.error('Erro ao fechar WebSocket:', err);
         }
       };
-    } catch (err: any) {
-      console.error('Erro geral ao criar conexão WebSocket:', err);
+    } catch (err) {
+      console.error('Erro geral no hook do WebSocket:', err);
       setState(prev => ({ 
         ...prev, 
         error: err instanceof Error ? err : new Error(String(err)), 
         isConnecting: false 
       }));
-      
-      return undefined;
+      return () => {};
     }
-  }, [user, options, state.socket, state.error]);
+  }, [user, options]);
 
-  // Enviar mensagem através do WebSocket
+  // Enviar mensagem através do WebSocket com verificações de segurança
   const sendMessage = useCallback((data: any) => {
-    if (state.socket?.readyState === WebSocket.OPEN) {
-      state.socket.send(JSON.stringify(data));
-      return true;
-    } else {
-      console.warn('WebSocket não está conectado.');
+    try {
+      if (!state.socket) {
+        console.warn('WebSocket não inicializado.');
+        return false;
+      }
+      
+      if (state.socket.readyState === WebSocket.OPEN) {
+        state.socket.send(JSON.stringify(data));
+        return true;
+      } else {
+        console.warn('WebSocket não está conectado.');
+        return false;
+      }
+    } catch (err) {
+      console.error('Erro ao enviar mensagem WebSocket:', err);
       return false;
     }
   }, [state.socket]);
 
-  // Fechar conexão
+  // Fechar conexão de forma segura
   const disconnect = useCallback(() => {
-    if (state.socket) {
-      state.socket.close();
-      setState(prev => ({ 
-        ...prev, 
-        socket: null, 
-        isConnected: false 
-      }));
+    try {
+      if (state.socket) {
+        state.socket.close(1000, "Fechamento intencional");
+        setState(prev => ({ 
+          ...prev, 
+          socket: null, 
+          isConnected: false 
+        }));
+      }
+    } catch (err) {
+      console.error('Erro ao desconectar WebSocket:', err);
     }
   }, [state.socket]);
 
-  // Conectar automaticamente quando o hook for montado, se autoConnect for true
+  // Conectar automaticamente quando o hook for montado, APENAS se autoConnect for TRUE
   useEffect(() => {
-    if (options.autoConnect) {
-      const cleanup = connect();
-      
-      return () => {
-        if (cleanup) cleanup();
-        disconnect();
-      };
+    let cleanup = () => {};
+    
+    // Só conecta se explicitamente solicitado e o usuário estiver autenticado
+    if (options.autoConnect === true && user) {
+      const cleanupFn = connect();
+      if (typeof cleanupFn === 'function') {
+        cleanup = cleanupFn;
+      }
     }
-  }, [connect, disconnect, options.autoConnect]);
+    
+    return () => {
+      cleanup();
+      disconnect();
+    };
+  }, [connect, disconnect, options.autoConnect, user]);
 
   return {
     ...state,
