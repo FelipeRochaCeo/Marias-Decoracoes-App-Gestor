@@ -17,6 +17,20 @@ interface WebSocketState {
   error: Error | null;
 }
 
+// Compatibilidade com diferentes ambientes
+const getBaseUrl = () => {
+  // Determinar o protocolo (ws ou wss)
+  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+  
+  // Se estamos no ambiente Replit, usar a URL completa com o domínio atual
+  if (window.location.hostname.includes('replit')) {
+    return `${protocol}//${window.location.host}/ws`;
+  }
+  
+  // Para desenvolvimento local, usar localhost
+  return `${protocol}//localhost:5000/ws`;
+};
+
 export function useWebSocket(options: UseWebSocketOptions = {}) {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -36,13 +50,25 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
 
       setState(prev => ({ ...prev, isConnecting: true, error: null }));
 
-      // Criação da URL do WebSocket
-      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      const wsUrl = `${protocol}//${window.location.host}/ws`;
+      // Tentamos criar o WebSocket com uma URL válida
+      const wsUrl = getBaseUrl();
+      console.log('Tentando conectar ao WebSocket:', wsUrl);
       
-      const socket = new WebSocket(wsUrl);
+      let socket: WebSocket;
+      try {
+        socket = new WebSocket(wsUrl);
+      } catch (err) {
+        console.error('Erro na criação do WebSocket:', err);
+        setState(prev => ({ 
+          ...prev, 
+          error: new Error(`Erro ao criar WebSocket: ${err}`), 
+          isConnecting: false 
+        }));
+        return undefined;
+      }
 
       socket.onopen = () => {
+        console.log('WebSocket conectado com sucesso');
         setState(prev => ({ 
           ...prev, 
           socket, 
@@ -71,6 +97,7 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
       };
 
       socket.onclose = (event) => {
+        console.log('WebSocket fechado, código:', event.code);
         setState(prev => ({ 
           ...prev, 
           socket: null, 
@@ -88,6 +115,7 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
       };
 
       socket.onerror = (event) => {
+        console.error('Erro na conexão WebSocket:', event);
         const error = new Error('Erro na conexão WebSocket');
         
         setState(prev => ({ 
@@ -97,27 +125,24 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
         }));
         
         options.onError?.(event);
-        
-        // Erro silencioso - não exibe toast para o usuário
-        console.error('Erro na conexão WebSocket:', event);
       };
 
       return () => {
-        if (socket.readyState === WebSocket.OPEN) {
+        if (socket && socket.readyState === WebSocket.OPEN) {
           socket.close();
         }
       };
     } catch (err: any) {
+      console.error('Erro geral ao criar conexão WebSocket:', err);
       setState(prev => ({ 
         ...prev, 
-        error: err, 
+        error: err instanceof Error ? err : new Error(String(err)), 
         isConnecting: false 
       }));
       
-      console.error('Erro ao criar conexão WebSocket:', err);
       return undefined;
     }
-  }, [user, options, state.socket]);
+  }, [user, options, state.socket, state.error]);
 
   // Enviar mensagem através do WebSocket
   const sendMessage = useCallback((data: any) => {
