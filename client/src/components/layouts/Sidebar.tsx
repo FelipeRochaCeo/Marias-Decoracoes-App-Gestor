@@ -25,7 +25,7 @@ const Sidebar = ({ isOpen }: SidebarProps) => {
           <h1 className="text-lg font-semibold text-gray-800">Marias Decorações</h1>
         </div>
       </div>
-      
+
       {/* User Profile */}
       <div className="p-4 border-b border-gray-200">
         <div className="flex items-center space-x-3">
@@ -44,21 +44,21 @@ const Sidebar = ({ isOpen }: SidebarProps) => {
           </div>
         </div>
       </div>
-      
+
       {/* Navigation Menu */}
       <nav className="p-2 flex-1 overflow-y-auto">
         <div className="space-y-1">
-          <Link href="/">
-            <div className={`block px-3 py-2 rounded-md ${isActive('/') ? 'bg-primary text-white' : 'text-gray-700 hover:bg-gray-100'} font-medium`}>
+          <Link href="/dashboard">
+            <div className={`block px-3 py-2 rounded-md ${isActive('/dashboard') ? 'bg-primary text-white' : 'text-gray-700 hover:bg-gray-100'} font-medium`}>
               <div className="flex items-center space-x-3">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                   <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
                 </svg>
-                <span>Painel</span>
+                <span>Dashboard</span>
               </div>
             </div>
           </Link>
-          
+
           <Link href="/team">
             <div className={`block px-3 py-2 rounded-md ${isActive('/team') ? 'bg-primary text-white' : 'text-gray-700 hover:bg-gray-100'} font-medium`}>
               <div className="flex items-center space-x-3">
@@ -69,7 +69,7 @@ const Sidebar = ({ isOpen }: SidebarProps) => {
               </div>
             </div>
           </Link>
-          
+
           <Link href="/chat">
             <div className={`block px-3 py-2 rounded-md ${isActive('/chat') ? 'bg-primary text-white' : 'text-gray-700 hover:bg-gray-100'} font-medium`}>
               <div className="flex items-center justify-between">
@@ -83,7 +83,7 @@ const Sidebar = ({ isOpen }: SidebarProps) => {
               </div>
             </div>
           </Link>
-          
+
           <Link href="/inventory">
             <div className={`block px-3 py-2 rounded-md ${isActive('/inventory') ? 'bg-primary text-white' : 'text-gray-700 hover:bg-gray-100'} font-medium`}>
               <div className="flex items-center space-x-3">
@@ -94,7 +94,7 @@ const Sidebar = ({ isOpen }: SidebarProps) => {
               </div>
             </div>
           </Link>
-          
+
           <Link href="/tasks">
             <div className={`block px-3 py-2 rounded-md ${isActive('/tasks') ? 'bg-primary text-white' : 'text-gray-700 hover:bg-gray-100'} font-medium`}>
               <div className="flex items-center space-x-3">
@@ -105,7 +105,7 @@ const Sidebar = ({ isOpen }: SidebarProps) => {
               </div>
             </div>
           </Link>
-          
+
           <Link href="/feedback">
             <div className={`block px-3 py-2 rounded-md ${isActive('/feedback') ? 'bg-primary text-white' : 'text-gray-700 hover:bg-gray-100'} font-medium`}>
               <div className="flex items-center space-x-3">
@@ -117,7 +117,7 @@ const Sidebar = ({ isOpen }: SidebarProps) => {
             </div>
           </Link>
         </div>
-        
+
         <div className="mt-6">
           <h3 className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Sistema</h3>
           <div className="mt-2 space-y-1">
@@ -134,7 +134,7 @@ const Sidebar = ({ isOpen }: SidebarProps) => {
           </div>
         </div>
       </nav>
-      
+
       <div className="p-4 border-t border-gray-200">
         <button 
           onClick={logout}
