@@ -37,25 +37,38 @@ const ProtectedRoute = ({ component: Component, ...rest }: any) => {
 
 function Router() {
   const { user } = useAuth();
+  const [location] = useLocation();
+
+  // Redirecionar para login se não estiver na página de login e não estiver autenticado
+  if (!user && location !== "/login") {
+    return <Redirect to="/login" />;
+  }
+
+  // Redirecionar para dashboard se estiver na raiz e estiver autenticado
+  if (user && location === "/") {
+    return <Redirect to="/dashboard" />;
+  }
 
   return (
     <Switch>
       <Route path="/login">
-        {user ? <Redirect to="/" /> : <Login />}
+        {user ? <Redirect to="/dashboard" /> : <Login />}
       </Route>
       <Route path="/">
-        <AppShell>
-          <Switch>
-            <Route path="/" component={() => <ProtectedRoute component={Dashboard} />} />
-            <Route path="/inventory" component={() => <ProtectedRoute component={Inventory} />} />
-            <Route path="/tasks" component={() => <ProtectedRoute component={Tasks} />} />
-            <Route path="/chat" component={() => <ProtectedRoute component={Chat} />} />
-            <Route path="/feedback" component={() => <ProtectedRoute component={Feedback} />} />
-            <Route path="/team" component={() => <ProtectedRoute component={Team} />} />
-            <Route path="/configuration" component={() => <ProtectedRoute component={Configuration} />} />
-            <Route component={NotFound} />
-          </Switch>
-        </AppShell>
+        {!user ? <Redirect to="/login" /> : (
+          <AppShell>
+            <Switch>
+              <Route path="/dashboard" component={() => <ProtectedRoute component={Dashboard} />} />
+              <Route path="/inventory" component={() => <ProtectedRoute component={Inventory} />} />
+              <Route path="/tasks" component={() => <ProtectedRoute component={Tasks} />} />
+              <Route path="/chat" component={() => <ProtectedRoute component={Chat} />} />
+              <Route path="/feedback" component={() => <ProtectedRoute component={Feedback} />} />
+              <Route path="/team" component={() => <ProtectedRoute component={Team} />} />
+              <Route path="/configuration" component={() => <ProtectedRoute component={Configuration} />} />
+              <Route component={NotFound} />
+            </Switch>
+          </AppShell>
+        )}
       </Route>
     </Switch>
   );

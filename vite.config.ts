@@ -9,6 +9,13 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 export default defineConfig({
+  server: {
+    port: 5000,
+    hmr: {
+      port: 443,
+      protocol: "wss"
+    }
+  },
   plugins: [
     react(),
     runtimeErrorOverlay(),
